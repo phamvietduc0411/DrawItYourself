@@ -23,7 +23,8 @@ namespace DrawingApp
         private Ellipse currentEllipse;
         private Rectangle currentRectangle;
 
-        private string lastSavedDirectory;
+        private string lastSavedDirectory = null;
+        private string lastSavedFilePath = null;
         public MainWindow()
         {
             InitializeComponent();
@@ -207,6 +208,7 @@ namespace DrawingApp
             isRectangleMode = false;
         }
 
+
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             RenderTargetBitmap renderBitmap = new RenderTargetBitmap(
@@ -215,26 +217,30 @@ namespace DrawingApp
 
             renderBitmap.Render(drawingPage);
 
-            // Check if a file has been saved previously
-            if (lastSavedDirectory != null)
+            if (lastSavedFilePath != null)
             {
-                string filePath = System.IO.Path.Combine(lastSavedDirectory, "saved_image.png"); // Default name
-                SaveToFile(filePath, renderBitmap);
+                // Save to the previously saved file path
+                SaveToFile(lastSavedFilePath, renderBitmap);
             }
             else
             {
                 SaveFileDialog saveFileDialog = new SaveFileDialog
                 {
-                    Filter = "PNG Files (*.png)|*.png",
+                    Filter = "PNG Files (*.png)|*.png|JPEG Files (*.jpeg)|*.jpeg|Bitmap Files (*.bmp)|*.bmp",
                     DefaultExt = "png",
                     AddExtension = true
                 };
 
+                if (lastSavedDirectory != null)
+                {
+                    saveFileDialog.InitialDirectory = lastSavedDirectory;
+                }
+
                 if (saveFileDialog.ShowDialog() == true)
                 {
-                    string filePath = saveFileDialog.FileName;
-                    lastSavedDirectory = System.IO.Path.GetDirectoryName(filePath);
-                    SaveToFile(filePath, renderBitmap);
+                    lastSavedFilePath = saveFileDialog.FileName;
+                    lastSavedDirectory = System.IO.Path.GetDirectoryName(lastSavedFilePath);
+                    SaveToFile(lastSavedFilePath, renderBitmap);
                 }
             }
         }
@@ -244,22 +250,29 @@ namespace DrawingApp
             using (FileStream fs = new FileStream(filePath, FileMode.Create))
             {
                 BitmapEncoder encoder = null;
-
-                encoder = new PngBitmapEncoder();
+                if (filePath.EndsWith(".png"))
+                {
+                    encoder = new PngBitmapEncoder();
+                }
+                else if (filePath.EndsWith(".jpeg") || filePath.EndsWith(".jpg"))
+                {
+                    encoder = new JpegBitmapEncoder();
+                }
+                else if (filePath.EndsWith(".bmp"))
+                {
+                    encoder = new BmpBitmapEncoder();
+                }
 
                 if (encoder != null)
                 {
                     encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
                     encoder.Save(fs);
 
+                    // Display success message
                     MessageBox.Show("File saved successfully!", "Save File", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
         }
-
     }
-
-
-
 }
 
