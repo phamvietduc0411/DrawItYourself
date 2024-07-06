@@ -12,17 +12,20 @@
             <Canvas Name="drawingPage" Background="White" MouseLeftButtonDown="Canvas_MouseLeftButtonDown"
                     MouseMove="Canvas_MouseMove" MouseLeftButtonUp="Canvas_MouseLeftButtonUp" Height="1169" Width="1009"/>
         </ScrollViewer>
-        <ComboBox x:Name="thicknessComboBox" SelectionChanged="ThicknessComboBox_SelectionChanged" Margin="45,4,630,389" RenderTransformOrigin="0.656,1.627">
+        <ComboBox  x:Name="thicknessComboBox" SelectionChanged="ThicknessComboBox_SelectionChanged" HorizontalAlignment="Left" Height="35" Margin="45,10,0,0" VerticalAlignment="Top" Width="58">
             <ComboBoxItem Content="Small" Tag="1" />
             <ComboBoxItem Content="Medium" Tag="5" />
             <ComboBoxItem Content="Large" Tag="10" />
         </ComboBox>
-        <Label Content="Size" HorizontalAlignment="Left" Margin="0,7,0,0" VerticalAlignment="Top" Width="35" Height="36"/>
-        <xctk:ColorPicker x:Name="colorPicker" SelectedColorChanged="ColorPicker_SelectedColorChanged" Margin="45,64,630,329"/>
-        <Button Content="Clear" Click="ClearButton_Click" Margin="18,361,642,10" />
-        <Button Content="Line Mode" Click="LineModeButton_Click" Height="30" Margin="45,167,630,0" VerticalAlignment="Top" Width="125"  />
-        <Button Content="Ellipse" HorizontalAlignment="Left" Height="30" Margin="45,217,0,0" VerticalAlignment="Top" Width="125"/>
-        <Button x:Name="RectangleButton" Content="Rectangle" HorizontalAlignment="Left" Height="30" Margin="45,263,0,0" VerticalAlignment="Top" Width="125" Click="RectangleButton_Click"/>
-        <Button x:Name="PencilButton" Content="Pencil" HorizontalAlignment="Left" Height="29" Margin="45,120,0,0" VerticalAlignment="Top" Width="125" Click="PencilButton_Click"/>
+        <Label Content="Size" HorizontalAlignment="Left" Height="24" Margin="10,21,0,0" VerticalAlignment="Top" Width="30"/>
+        <xctk:ColorPicker x:Name="colorPicker" SelectedColorChanged="ColorPicker_SelectedColorChanged" HorizontalAlignment="Left" Height="35" Margin="108,10,0,0" VerticalAlignment="Top" Width="65"/>
+        <Button Content="Clear" Click="ClearButton_Click" HorizontalAlignment="Left" Height="29" Margin="18,384,0,0" VerticalAlignment="Top" Width="60" />
+        <Button Content="Line Mode" Click="LineModeButton_Click" Height="30" Margin="45,120,627,0" VerticalAlignment="Top"  />
+        <Button Content="Ellipse" HorizontalAlignment="Left" Height="30" Margin="45,166,0,0" VerticalAlignment="Top" Width="128"/>
+        <Button x:Name="RectangleButton" Content="Rectangle" HorizontalAlignment="Left" Height="30" Margin="45,217,0,0" VerticalAlignment="Top" Width="128" Click="RectangleButton_Click"/>
+        <Button x:Name="PencilButton" Content="Pencil" HorizontalAlignment="Left" Height="32" Margin="45,68,0,0" VerticalAlignment="Top" Width="128" Click="PencilButton_Click"/>
+        <Button Content="Save" Click="SaveButton_Click" HorizontalAlignment="Left" Height="29" Margin="108,384,0,0" VerticalAlignment="Top" Width="62" />
+
+
     </Grid>
 </Window>
