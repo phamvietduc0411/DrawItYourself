@@ -17,12 +17,12 @@
             <ComboBoxItem Content="Medium" Tag="5" />
             <ComboBoxItem Content="Large" Tag="10" />
         </ComboBox>
-        <Label Content="Size" HorizontalAlignment="Left" Margin="0,4,0,0" VerticalAlignment="Top" Width="35" Height="36"/>
+        <Label Content="Size" HorizontalAlignment="Left" Margin="0,7,0,0" VerticalAlignment="Top" Width="35" Height="36"/>
         <xctk:ColorPicker x:Name="colorPicker" SelectedColorChanged="ColorPicker_SelectedColorChanged" Margin="45,64,630,329"/>
         <Button Content="Clear" Click="ClearButton_Click" Margin="18,361,642,10" />
-        <Button Content="Line Mode" Click="LineModeButton_Click" Margin="45,202,630,202"  />
-        <Button Content="Ellipse" HorizontalAlignment="Left" Height="30" Margin="45,249,0,0" VerticalAlignment="Top" Width="125"/>
-        <Button x:Name="RectangleButton" Content="Rectangle" HorizontalAlignment="Left" Height="30" Margin="45,298,0,0" VerticalAlignment="Top" Width="125" Click="RectangleButton_Click"/>
-        <Button x:Name="PencilButton" Content="Pencil" HorizontalAlignment="Left" Height="29" Margin="45,147,0,0" VerticalAlignment="Top" Width="125" Click="PencilButton_Click"/>
+        <Button Content="Line Mode" Click="LineModeButton_Click" Height="30" Margin="45,167,630,0" VerticalAlignment="Top" Width="125"  />
+        <Button Content="Ellipse" HorizontalAlignment="Left" Height="30" Margin="45,217,0,0" VerticalAlignment="Top" Width="125"/>
+        <Button x:Name="RectangleButton" Content="Rectangle" HorizontalAlignment="Left" Height="30" Margin="45,263,0,0" VerticalAlignment="Top" Width="125" Click="RectangleButton_Click"/>
+        <Button x:Name="PencilButton" Content="Pencil" HorizontalAlignment="Left" Height="29" Margin="45,120,0,0" VerticalAlignment="Top" Width="125" Click="PencilButton_Click"/>
     </Grid>
 </Window>
