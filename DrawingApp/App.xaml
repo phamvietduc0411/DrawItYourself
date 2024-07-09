@@ -4,6 +4,11 @@
              xmlns:local="clr-namespace:DrawingApp"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="styles/ButtonStyles.xaml"/>
+                <ResourceDictionary Source="styles/SliderStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

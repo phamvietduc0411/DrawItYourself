@@ -7,6 +7,8 @@ using System.Windows.Shapes;
 using System.IO;
 using Microsoft.Win32;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
+using System.Windows.Controls.Primitives;
 
 
 namespace DrawingApp
@@ -23,6 +25,8 @@ namespace DrawingApp
         private Ellipse currentEllipse;
         private Rectangle currentRectangle;
 
+        private bool mediaPlayerIsPlaying = false;
+        private MediaPlayer mediaPlayer = new MediaPlayer();
         private string lastSavedDirectory = null;
         private string lastSavedFilePath = null;
         public MainWindow()
@@ -32,6 +36,14 @@ namespace DrawingApp
             isLineMode = false;
             isEllipseMode = false;
             isRectangleMode = false;
+
+            mediaPlayer.Volume = 0.5;
+            sliderVolume.Value = 50;
+
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(1);
+            timer.Tick += timer_Tick;
+            timer.Start();
         }
 
         private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -272,6 +284,80 @@ namespace DrawingApp
                     MessageBox.Show("File saved successfully!", "Save File", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
+        }
+
+        void timer_Tick(object sender, EventArgs e)
+        {
+            if (mediaPlayer.Source != null)
+                lblStatus.Content = String.Format("{0} / {1}", mediaPlayer.Position.ToString(@"mm\:ss"), mediaPlayer.NaturalDuration.TimeSpan.ToString(@"mm\:ss"));
+            else
+                lblStatus.Content = "No file selected...";
+        }
+
+        private void PlayMusic_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = (mediaPlayer == null) || (mediaPlayer.Source == null);
+        }
+        private void PauseMusic_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = mediaPlayerIsPlaying;
+        }
+        private void StopMusic_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = mediaPlayerIsPlaying;
+        }
+        private void btnPlayMusic_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "MP3 files (*.mp3)|*.mp3|All files (*.*)|*.*";
+            if (openFileDialog.ShowDialog() == true)
+               mediaPlayer.Open(new Uri(openFileDialog.FileName));
+            mediaPlayer.Play();
+            mediaPlayerIsPlaying = true;
+        }
+
+        private void btnPauseMusic_Click(object sender, RoutedEventArgs e)
+        {
+            mediaPlayer.Pause();
+        }
+
+        private void btnStopMusic_Click(object sender, RoutedEventArgs e)
+        {
+            mediaPlayer.Stop();
+            mediaPlayerIsPlaying = false;
+        }
+
+        private void sliderVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            mediaPlayer.Volume = (double)( sliderVolume.Value / 100 );
+        }
+
+        void onDragDelta(object sender, DragDeltaEventArgs e)
+        {
+            //Move the Thumb to the mouse position during the drag operation
+            double yadjust = drawingPage.Height + e.VerticalChange;
+            double xadjust = drawingPage.Width + e.HorizontalChange;
+            if ((xadjust >= 0) && (yadjust >= 0))
+            {
+                drawingPage.Width = xadjust;
+                drawingPage.Height = yadjust;
+                drawingPageContainer.Width = xadjust;
+                drawingPageContainer.Height = yadjust + 20;
+                Canvas.SetLeft(myThumb, Canvas.GetLeft(myThumb) +
+                                        e.HorizontalChange);
+                Canvas.SetTop(myThumb, Canvas.GetTop(myThumb) +
+                                        e.VerticalChange);
+
+            }
+        }
+
+        void onDragStarted(object sender, DragStartedEventArgs e)
+        {
+            myThumb.Background = Brushes.Orange;
+        }
+        void onDragCompleted(object sender, DragCompletedEventArgs e)
+        {
+            myThumb.Background = Brushes.Blue;
         }
     }
 }

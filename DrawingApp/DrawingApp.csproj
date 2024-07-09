@@ -10,7 +10,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="assets\pause.png" />
+    <None Remove="assets\play.png" />
+    <None Remove="assets\stop.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="assets\Logo.ico" />
+    <Content Include="assets\pause.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="assets\play.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="assets\stop.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
