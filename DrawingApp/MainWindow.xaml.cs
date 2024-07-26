@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Shapes;
 using System.IO;
 using Microsoft.Win32;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using System.Windows.Controls.Primitives;
+using System;
+using System.Windows.Media;
+using System.Security.Policy;
+using System.Collections;
 
 namespace DrawingApp
 {
@@ -28,6 +30,7 @@ namespace DrawingApp
         private Rectangle currentRectangle;
 
         private bool mediaPlayerIsPlaying = false;
+        private bool userIsDraggingSlider = false;
         private MediaPlayer mediaPlayer = new MediaPlayer();
         private string lastSavedDirectory = null;
         private string lastSavedFilePath = null;
@@ -49,6 +52,8 @@ namespace DrawingApp
             timer.Interval = TimeSpan.FromSeconds(1);
             timer.Tick += timer_Tick;
             timer.Start();
+
+            //SongsDataGrid.ItemsSource = ProcessDirectory("./assets/Music");
         }
 
         private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -301,34 +306,45 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
         void timer_Tick(object sender, EventArgs e)
         {
             if (mediaPlayer.Source != null)
+            {
+                sliProgress.Minimum = 0;
+                sliProgress.Maximum = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                sliProgress.Value = mediaPlayer.Position.TotalSeconds;
                 lblStatus.Content = String.Format("{0} / {1}", mediaPlayer.Position.ToString(@"mm\:ss"), mediaPlayer.NaturalDuration.TimeSpan.ToString(@"mm\:ss"));
+
+            }
+               
             else
                 lblStatus.Content = "No file selected...";
         }
 
         private void PlayMusic_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = (mediaPlayer == null) || (mediaPlayer.Source == null);
+            e.CanExecute = !mediaPlayerIsPlaying || (mediaPlayer.Source != null && mediaPlayer.CanPause);
+                //(mediaPlayer == null) || (mediaPlayer.Source == null);
         }
-
         private void PauseMusic_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = mediaPlayerIsPlaying;
         }
-
         private void StopMusic_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = mediaPlayerIsPlaying;
         }
-
         private void btnPlayMusic_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "MP3 files (*.mp3)|*.mp3|All files (*.*)|*.*";
-            if (openFileDialog.ShowDialog() == true)
-                mediaPlayer.Open(new Uri(openFileDialog.FileName));
+            if(mediaPlayer.Source == null)
+            {
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "MP3 files (*.mp3)|*.mp3|All files (*.*)|*.*";
+                if (openFileDialog.ShowDialog() == true)
+                    mediaPlayer.Open(new Uri(openFileDialog.FileName));
+            }
             mediaPlayer.Play();
             mediaPlayerIsPlaying = true;
+            Image newImage = new Image();
+            newImage.Source = new BitmapImage(new Uri("./assets/pause.png", UriKind.Relative));
+            btnPlayMusic.Content = newImage;
         }
 
         private void btnPauseMusic_Click(object sender, RoutedEventArgs e)
@@ -342,13 +358,36 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
             mediaPlayerIsPlaying = false;
         }
 
+        private void sliProgress_DragStarted(object sender, DragStartedEventArgs e)
+        {
+            if (mediaPlayer.Source != null)
+            {
+                userIsDraggingSlider = true;
+            }
+        }
+
+        private void sliProgress_DragCompleted(object sender, DragCompletedEventArgs e)
+        {
+            if (mediaPlayer.Source != null) {
+                userIsDraggingSlider = false;
+                mediaPlayer.Position = TimeSpan.FromSeconds(sliProgress.Value);
+            }       
+        }
+
+        private void sliProgress_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            lblProgressStatus.Text = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
+        }
+
+
         private void sliderVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            mediaPlayer.Volume = (double)(sliderVolume.Value / 100);
+            mediaPlayer.Volume = (double)( sliderVolume.Value / 100 );
         }
 
         void onDragDelta(object sender, DragDeltaEventArgs e)
         {
+            //Move the Thumb to the mouse position during the drag operation
             double yadjust = drawingPage.Height + e.VerticalChange;
             double xadjust = drawingPage.Width + e.HorizontalChange;
             if ((xadjust >= 0) && (yadjust >= 0))
@@ -361,6 +400,7 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
                                         e.HorizontalChange);
                 Canvas.SetTop(myThumb, Canvas.GetTop(myThumb) +
                                         e.VerticalChange);
+
             }
         }
 
@@ -368,10 +408,22 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
         {
             myThumb.Background = Brushes.Orange;
         }
-
         void onDragCompleted(object sender, DragCompletedEventArgs e)
         {
             myThumb.Background = Brushes.Blue;
+        }
+
+        private void OpenMusicExpanderButton_Click(object sender, RoutedEventArgs e)
+        {
+            MusicExpander.IsExpanded = !MusicExpander.IsExpanded;
+        }
+
+        private List<string> ProcessDirectory(string targetDirectory)
+        {
+            // Process the list of files found in the directory.
+            string[] fileEntries = Directory.GetFiles(targetDirectory);
+            List<string> fileEntryList = fileEntries.ToList();
+            return fileEntryList;
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

@@ -16,7 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="assets\Logo.ico" />
+    <Content Include="assets\Logo.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="assets\pause.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
