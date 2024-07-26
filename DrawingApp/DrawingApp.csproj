@@ -10,13 +10,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="assets\mutevolume.png" />
     <None Remove="assets\pause.png" />
     <None Remove="assets\play.png" />
     <None Remove="assets\stop.png" />
+    <None Remove="assets\volume-up.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="assets\Logo.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="assets\mutevolume.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="assets\pause.png">
@@ -26,6 +31,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="assets\stop.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+    <Content Include="assets\volume-up.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

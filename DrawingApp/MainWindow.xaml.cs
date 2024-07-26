@@ -53,7 +53,9 @@ namespace DrawingApp
             timer.Tick += timer_Tick;
             timer.Start();
 
-            //SongsDataGrid.ItemsSource = ProcessDirectory("./assets/Music");
+            List<string> fileNames = ProcessDirectory(@"..\..\..\assets\Music");
+            SongsDataGrid.ItemsSource = null;
+            SongsDataGrid.ItemsSource = fileNames;
         }
 
         private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -310,53 +312,34 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
                 sliProgress.Minimum = 0;
                 sliProgress.Maximum = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
                 sliProgress.Value = mediaPlayer.Position.TotalSeconds;
-                lblStatus.Content = String.Format("{0} / {1}", mediaPlayer.Position.ToString(@"mm\:ss"), mediaPlayer.NaturalDuration.TimeSpan.ToString(@"mm\:ss"));
-
-            }
-               
-            else
-                lblStatus.Content = "No file selected...";
+                CurrentMusicTimeLabel.Content = mediaPlayer.Position.ToString(@"mm\:ss");
+                EndMusicTimeLabel.Content = mediaPlayer.NaturalDuration.TimeSpan.ToString(@"mm\:ss");
+            }             
         }
 
-        private void PlayMusic_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = !mediaPlayerIsPlaying || (mediaPlayer.Source != null && mediaPlayer.CanPause);
-                //(mediaPlayer == null) || (mediaPlayer.Source == null);
-        }
-        private void PauseMusic_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = mediaPlayerIsPlaying;
-        }
-        private void StopMusic_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = mediaPlayerIsPlaying;
-        }
         private void btnPlayMusic_Click(object sender, RoutedEventArgs e)
         {
-            if(mediaPlayer.Source == null)
+            if(mediaPlayer.Source != null)
             {
-                OpenFileDialog openFileDialog = new OpenFileDialog();
-                openFileDialog.Filter = "MP3 files (*.mp3)|*.mp3|All files (*.*)|*.*";
-                if (openFileDialog.ShowDialog() == true)
-                    mediaPlayer.Open(new Uri(openFileDialog.FileName));
+                if (mediaPlayerIsPlaying)
+                {
+                    mediaPlayer.Pause();
+                    mediaPlayerIsPlaying = false;
+                    Image newImage = new Image();
+                    newImage.Source = new BitmapImage(new Uri("./assets/play.png", UriKind.Relative));
+                    btnPlayMusic.Content = newImage;
+                }
+                else
+                {
+                    mediaPlayer.Play();
+                    mediaPlayerIsPlaying = true;
+                    Image newImage = new Image();
+                    newImage.Source = new BitmapImage(new Uri("./assets/pause.png", UriKind.Relative));
+                    btnPlayMusic.Content = newImage;
+                }
             }
-            mediaPlayer.Play();
-            mediaPlayerIsPlaying = true;
-            Image newImage = new Image();
-            newImage.Source = new BitmapImage(new Uri("./assets/pause.png", UriKind.Relative));
-            btnPlayMusic.Content = newImage;
         }
 
-        private void btnPauseMusic_Click(object sender, RoutedEventArgs e)
-        {
-            mediaPlayer.Pause();
-        }
-
-        private void btnStopMusic_Click(object sender, RoutedEventArgs e)
-        {
-            mediaPlayer.Stop();
-            mediaPlayerIsPlaying = false;
-        }
 
         private void sliProgress_DragStarted(object sender, DragStartedEventArgs e)
         {
@@ -376,7 +359,7 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
 
         private void sliProgress_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            lblProgressStatus.Text = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
+            CurrentMusicTimeLabel.Content = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"mm\:ss");
         }
 
 
@@ -420,10 +403,16 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
 
         private List<string> ProcessDirectory(string targetDirectory)
         {
-            // Process the list of files found in the directory.
-            string[] fileEntries = Directory.GetFiles(targetDirectory);
-            List<string> fileEntryList = fileEntries.ToList();
-            return fileEntryList;
+            System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, targetDirectory );
+            string[] fileEntries = Directory.GetFiles(targetDirectory, "*.mp3");
+            List<string> fileNames = new List<string>();
+
+            foreach (string fileName in fileEntries)
+            {
+                fileNames.Add(System.IO.Path.GetFileNameWithoutExtension(fileName));
+            }
+
+            return fileNames;
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -456,6 +445,25 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
                 Canvas.SetLeft(image, 0);
                 Canvas.SetTop(image, 0);
                 drawingPage.Children.Add(image);
+            }
+        }
+
+        private void SongsDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (SongsDataGrid.SelectedItem != null)
+            {
+                string? selectedFileName = SongsDataGrid.SelectedItem as string;
+                if(selectedFileName != null)
+                {
+                    string selectedMusicPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\assets\\Music", selectedFileName + ".mp3");
+                    mediaPlayer.Open(new Uri(selectedMusicPath));
+                    mediaPlayer.Play();
+                    mediaPlayerIsPlaying = true;
+                    Image newImage = new Image();
+                    newImage.Source = new BitmapImage(new Uri("./assets/pause.png", UriKind.Relative));
+                    btnPlayMusic.Content = newImage;
+                    CurrentPlayingSongLabel.Content = selectedFileName;
+                }
             }
         }
     }

@@ -10,11 +10,6 @@
     <Window.Resources>
 
     </Window.Resources>
-    <Window.CommandBindings>
-        <CommandBinding Command="MediaCommands.Play" CanExecute="PlayMusic_CanExecute" Executed="btnPlayMusic_Click" />
-        <CommandBinding Command="MediaCommands.Pause" CanExecute="PauseMusic_CanExecute" Executed="btnPauseMusic_Click" />
-        <CommandBinding Command="MediaCommands.Stop" CanExecute="StopMusic_CanExecute" Executed="btnStopMusic_Click" />
-    </Window.CommandBindings>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto"/>
@@ -23,10 +18,10 @@
             <ColumnDefinition Width="6*"/>
         </Grid.ColumnDefinitions>
         <Expander Grid.Column="0" ExpandDirection="Right" x:Name="MusicExpander" Margin="-30,0,0,0">
-            <StackPanel Background="Red"  Width="200" >
-                <DataGrid x:Name="SongsDataGrid" Width="auto" Margin="20">
+            <StackPanel Background="Red"  Width="300" >
+                <DataGrid x:Name="SongsDataGrid" Width="auto" AutoGenerateColumns="False" Margin="10,30,5,0" SelectionChanged="SongsDataGrid_SelectionChanged">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Song name" />
+                        <DataGridTextColumn Width="*" Header="Song name" Binding="{Binding}" />
                     </DataGrid.Columns>
                 </DataGrid>
             </StackPanel>
@@ -58,36 +53,67 @@
             <Button x:Name="EraserButton" Content="Eraser" Click="EraserButton_Click" RenderTransformOrigin="0.422,-3.828"  />
             <Button x:Name="ImportButton_Copy" Content="Import Image" Click="ImportButton_Click" RenderTransformOrigin="0.422,-3.828"  />
             <StackPanel Orientation="Vertical"  HorizontalAlignment="Center" Margin="0,30,0,0" >
-                <Label Name="lblStatus" Content="Not playing..." HorizontalContentAlignment="Center" Margin="5" />
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Button Width="60" Height="60" Name="btnPlayMusic" Background="Transparent" BorderThickness="0"  Command="MediaCommands.Play">
-                        <Image Source="./assets/play.png" />
-                    </Button>
-                    <Button Width="60" Height="60" Name="btnPauseMusic" Background="Transparent" BorderThickness="0" Command="MediaCommands.Pause">
-                        <Image Source="./assets/pause.png" />
-                    </Button>
-                    <Button Width="60" Height="60" Name="btnStopMusic" Background="Transparent" BorderThickness="0" Command="MediaCommands.Stop">
-                        <Image Source="./assets/stop.png" />
-                    </Button>
-                </StackPanel>
-                <StatusBarItem>
-                    <TextBlock Name="lblProgressStatus">00:00:00</TextBlock>
-                </StatusBarItem>
-                <Slider Name="sliProgress" Thumb.DragStarted="sliProgress_DragStarted"  Thumb.DragCompleted="sliProgress_DragCompleted" ValueChanged="sliProgress_ValueChanged" />
-                <Slider x:Name="sliderVolume"  Maximum="100" Minimum="0" Value="{Binding ElementName=mediaPlayer, Path=Volume}" ValueChanged="sliderVolume_ValueChanged" SmallChange="1" />
-                <Button x:Name="OpenMusicExpanderButton" Content="Choose song" Click="OpenMusicExpanderButton_Click"/>
+            </StackPanel>
+            <StackPanel>
+                <Button x:Name="OpenMusicExpanderButton" Height="40" Content="Choose song" Click="OpenMusicExpanderButton_Click"/>
             </StackPanel>
         </StackPanel>
-        <GridSplitter Background="AliceBlue" Grid.Column="2" HorizontalAlignment="Stretch"/>
+        <GridSplitter Background="Orange" Grid.Column="2" HorizontalAlignment="Stretch"/>
 
-        <StackPanel Grid.Column="3" HorizontalAlignment="Left">
-            <StackPanel x:Name="drawingPageContainer" Width="1038" Height="678">
-                <Canvas x:Name="drawingPage" Background="White" MouseLeftButtonDown="Canvas_MouseLeftButtonDown"
-MouseMove="Canvas_MouseMove" MouseLeftButtonUp="Canvas_MouseLeftButtonUp" Width="1000" MaxWidth="1150" Height="650" MaxHeight="760" />
-                <Thumb  HorizontalAlignment="Right" Name="myThumb" Canvas.Left="1000" Canvas.Top="650" Background="Blue" 
-      Width="20" Height="20" DragDelta="onDragDelta" 
-      DragStarted="onDragStarted" DragCompleted="onDragCompleted"/>
+        <Grid Grid.Column="3" HorizontalAlignment="Left" Width="1196" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="760"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0" x:Name="drawingPageContainer" HorizontalAlignment="Left" VerticalAlignment="Top" Width="1038" Height="678">
+                <Canvas x:Name="drawingPage"  Background="White" MouseLeftButtonDown="Canvas_MouseLeftButtonDown"
+                MouseMove="Canvas_MouseMove" MouseLeftButtonUp="Canvas_MouseLeftButtonUp"
+                Width="1000" MaxWidth="1150" Height="650" MaxHeight="750" />
+                <Thumb HorizontalAlignment="Right" Name="myThumb" Canvas.Left="1000"  Canvas.Top="650"
+              Background="Blue" Width="20" Height="20" DragDelta="onDragDelta" 
+              DragStarted="onDragStarted" DragCompleted="onDragCompleted"/>
             </StackPanel>
-        </StackPanel>
+            <StackPanel Grid.Row="1">
+                <Button x:Name="ExpandMusicBarButton" Background="Transparent" BorderThickness="0" Width="200" Height="25" Margin="0,0,0,0">
+                    <Image Width="30" Source="./assets/up-arrow.png" />
+                </Button>
+                <Expander ExpandDirection="Up" IsExpanded="True" Margin="100,0,100,0">
+                    <StackPanel>
+                        <Border Background="#E75480" Height="100" Margin="30,0" CornerRadius="30" VerticalAlignment="Top">
+                            <StackPanel Orientation="Vertical">
+                                <Label x:Name="CurrentPlayingSongLabel" Content="" HorizontalAlignment="Center" Foreground="White" FontSize="18"/>
+                                <StackPanel Height="50" Width="1000">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Height="100" Margin="30,0" >
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+                                            <Button Width="30" Height="30" Name="btnPlayMusic" BorderThickness="0" Background="Transparent" Click="btnPlayMusic_Click" >
+                                                <Image Width="30" Source="./assets/play.png" />
+                                            </Button>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                            <StackPanel Width="50" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10,0">
+                                                <Label x:Name="CurrentMusicTimeLabel" HorizontalAlignment="Right" Foreground="White" Content="0:00" />
+                                            </StackPanel>
+                                            <StackPanel Width="400" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,4,0,0">
+                                                <Slider Name="sliProgress" Thumb.DragStarted="sliProgress_DragStarted"  Thumb.DragCompleted="sliProgress_DragCompleted" ValueChanged="sliProgress_ValueChanged" />
+                                            </StackPanel>
+                                            <StackPanel Width="50" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10,0">
+                                                <Label x:Name="EndMusicTimeLabel"  HorizontalAlignment="Left" Foreground="White" Content="0:00" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,40,0">
+                                            <Image  HorizontalAlignment="Center" VerticalAlignment="Top" Width="30" Source="./assets/mutevolume.png" />
+                                            <StackPanel Width="200" HorizontalAlignment="Center" VerticalAlignment="Top">
+                                                <Slider x:Name="sliderVolume"  Maximum="100" Minimum="0" Value="{Binding Volume, ElementName=mediaPlayer}" ValueChanged="sliderVolume_ValueChanged" SmallChange="1" Margin="3,6,3,6"/>
+                                            </StackPanel>
+                                            <Image HorizontalAlignment="Center" VerticalAlignment="Top" Width="30" Source="./assets/volume-up.png" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Expander>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>
