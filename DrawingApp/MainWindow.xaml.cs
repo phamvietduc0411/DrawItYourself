@@ -19,6 +19,7 @@ namespace DrawingApp
         private bool isLineMode;
         private bool isEllipseMode;
         private bool isRectangleMode;
+
         private List<Point> pointsList;
         private Polyline currentLine;
         private Line straightLine;
@@ -33,6 +34,7 @@ namespace DrawingApp
         {
             InitializeComponent();
             pointsList = new List<Point>();
+
             isLineMode = false;
             isEllipseMode = false;
             isRectangleMode = false;
@@ -44,6 +46,7 @@ namespace DrawingApp
             timer.Interval = TimeSpan.FromSeconds(1);
             timer.Tick += timer_Tick;
             timer.Start();
+
         }
 
         private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -161,22 +164,21 @@ namespace DrawingApp
             return new SolidColorBrush(selectedColor);
         }
 
-        private double GetCurrentThickness()
+        private int GetCurrentThickness()
         {
             if (thicknessComboBox.SelectedItem != null)
             {
                 ComboBoxItem selectedItem = (ComboBoxItem)thicknessComboBox.SelectedItem;
-                return double.Parse(selectedItem.Tag.ToString());
+                return int.Parse(selectedItem.Tag.ToString());
             }
             return 1;
         }
 
         private void ThicknessComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (isDrawing && currentLine != null)
-            {
-                currentLine.StrokeThickness = GetCurrentThickness();
-            }
+
+            currentLine.StrokeThickness = GetCurrentThickness();
+
         }
 
         private void ColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
@@ -184,11 +186,18 @@ namespace DrawingApp
             if (isDrawing && currentLine != null)
             {
                 currentLine.Stroke = GetSelectedColorBrush();
+
             }
         }
 
         private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
+            MessageBoxResult result = MessageBox.Show("Do you want to delete all?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.No)
+            {
+                return;
+            }
             drawingPage.Children.Clear();
         }
 
@@ -231,14 +240,13 @@ namespace DrawingApp
 
             if (lastSavedFilePath != null)
             {
-                // Save to the previously saved file path
                 SaveToFile(lastSavedFilePath, renderBitmap);
             }
             else
             {
                 SaveFileDialog saveFileDialog = new SaveFileDialog
                 {
-                    Filter = "PNG Files (*.png)|*.png|JPEG Files (*.jpeg)|*.jpeg|Bitmap Files (*.bmp)|*.bmp",
+                    Filter = "PNG Files (*.png)|*.png",
                     DefaultExt = "png",
                     AddExtension = true
                 };
@@ -259,29 +267,21 @@ namespace DrawingApp
 
         private void SaveToFile(string filePath, RenderTargetBitmap renderBitmap)
         {
-            using (FileStream fs = new FileStream(filePath, FileMode.Create))
+            using (FileStream saveFile = new FileStream(filePath, FileMode.Create))
             {
                 BitmapEncoder encoder = null;
                 if (filePath.EndsWith(".png"))
                 {
                     encoder = new PngBitmapEncoder();
                 }
-                else if (filePath.EndsWith(".jpeg") || filePath.EndsWith(".jpg"))
-                {
-                    encoder = new JpegBitmapEncoder();
-                }
-                else if (filePath.EndsWith(".bmp"))
-                {
-                    encoder = new BmpBitmapEncoder();
-                }
 
                 if (encoder != null)
                 {
                     encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-                    encoder.Save(fs);
+                    encoder.Save(saveFile);
 
-                    // Display success message
-                    MessageBox.Show("File saved successfully!", "Save File", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(@$"File saved successfully!
+Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
         }
@@ -311,7 +311,7 @@ namespace DrawingApp
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "MP3 files (*.mp3)|*.mp3|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
-               mediaPlayer.Open(new Uri(openFileDialog.FileName));
+                mediaPlayer.Open(new Uri(openFileDialog.FileName));
             mediaPlayer.Play();
             mediaPlayerIsPlaying = true;
         }
@@ -329,7 +329,7 @@ namespace DrawingApp
 
         private void sliderVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            mediaPlayer.Volume = (double)( sliderVolume.Value / 100 );
+            mediaPlayer.Volume = (double)(sliderVolume.Value / 100);
         }
 
         void onDragDelta(object sender, DragDeltaEventArgs e)
@@ -358,6 +358,17 @@ namespace DrawingApp
         void onDragCompleted(object sender, DragCompletedEventArgs e)
         {
             myThumb.Background = Brushes.Blue;
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show("Do you want to close the application?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (result == MessageBoxResult.No)
+            {
+                e.Cancel = true;
+                return;
+            }
+
         }
     }
 }
