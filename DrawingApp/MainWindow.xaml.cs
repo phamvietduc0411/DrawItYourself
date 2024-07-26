@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,7 +11,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using System.Windows.Controls.Primitives;
 
-
 namespace DrawingApp
 {
     public partial class MainWindow : Window
@@ -19,6 +19,7 @@ namespace DrawingApp
         private bool isLineMode;
         private bool isEllipseMode;
         private bool isRectangleMode;
+        private bool isEraserMode;
 
         private List<Point> pointsList;
         private Polyline currentLine;
@@ -30,6 +31,7 @@ namespace DrawingApp
         private MediaPlayer mediaPlayer = new MediaPlayer();
         private string lastSavedDirectory = null;
         private string lastSavedFilePath = null;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -38,6 +40,7 @@ namespace DrawingApp
             isLineMode = false;
             isEllipseMode = false;
             isRectangleMode = false;
+            isEraserMode = false;
 
             mediaPlayer.Volume = 0.5;
             sliderVolume.Value = 50;
@@ -46,7 +49,6 @@ namespace DrawingApp
             timer.Interval = TimeSpan.FromSeconds(1);
             timer.Tick += timer_Tick;
             timer.Start();
-
         }
 
         private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -94,8 +96,8 @@ namespace DrawingApp
             {
                 currentLine = new Polyline
                 {
-                    Stroke = GetSelectedColorBrush(),
-                    StrokeThickness = GetCurrentThickness(),
+                    Stroke = isEraserMode ? Brushes.White : GetSelectedColorBrush(),
+                    StrokeThickness = isEraserMode ? 10 : GetCurrentThickness(),
                     Points = new PointCollection(pointsList)
                 };
                 drawingPage.Children.Add(currentLine);
@@ -160,7 +162,6 @@ namespace DrawingApp
         private SolidColorBrush GetSelectedColorBrush()
         {
             Color selectedColor = colorPicker.SelectedColor ?? Colors.Black;
-            //selectedColor.A = 128;
             return new SolidColorBrush(selectedColor);
         }
 
@@ -176,17 +177,17 @@ namespace DrawingApp
 
         private void ThicknessComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
-            currentLine.StrokeThickness = GetCurrentThickness();
-
+            if (currentLine != null)
+            {
+                currentLine.StrokeThickness = isEraserMode ? 10 : GetCurrentThickness();
+            }
         }
 
         private void ColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
         {
-            if (isDrawing && currentLine != null)
+            if (isDrawing && currentLine != null && !isEraserMode)
             {
                 currentLine.Stroke = GetSelectedColorBrush();
-
             }
         }
 
@@ -206,6 +207,7 @@ namespace DrawingApp
             isLineMode = !isLineMode;
             isEllipseMode = false;
             isRectangleMode = false;
+            isEraserMode = false;
         }
 
         private void EllipseButton_Click(object sender, RoutedEventArgs e)
@@ -213,6 +215,7 @@ namespace DrawingApp
             isEllipseMode = !isEllipseMode;
             isLineMode = false;
             isRectangleMode = false;
+            isEraserMode = false;
         }
 
         private void RectangleButton_Click(object sender, RoutedEventArgs e)
@@ -220,6 +223,7 @@ namespace DrawingApp
             isRectangleMode = !isRectangleMode;
             isLineMode = false;
             isEllipseMode = false;
+            isEraserMode = false;
         }
 
         private void PencilButton_Click(object sender, RoutedEventArgs e)
@@ -227,8 +231,16 @@ namespace DrawingApp
             isLineMode = false;
             isEllipseMode = false;
             isRectangleMode = false;
+            isEraserMode = false;
         }
 
+        private void EraserButton_Click(object sender, RoutedEventArgs e)
+        {
+            isEraserMode = !isEraserMode;
+            isLineMode = false;
+            isEllipseMode = false;
+            isRectangleMode = false;
+        }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
@@ -298,14 +310,17 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
         {
             e.CanExecute = (mediaPlayer == null) || (mediaPlayer.Source == null);
         }
+
         private void PauseMusic_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = mediaPlayerIsPlaying;
         }
+
         private void StopMusic_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = mediaPlayerIsPlaying;
         }
+
         private void btnPlayMusic_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -334,7 +349,6 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
 
         void onDragDelta(object sender, DragDeltaEventArgs e)
         {
-            //Move the Thumb to the mouse position during the drag operation
             double yadjust = drawingPage.Height + e.VerticalChange;
             double xadjust = drawingPage.Width + e.HorizontalChange;
             if ((xadjust >= 0) && (yadjust >= 0))
@@ -347,7 +361,6 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
                                         e.HorizontalChange);
                 Canvas.SetTop(myThumb, Canvas.GetTop(myThumb) +
                                         e.VerticalChange);
-
             }
         }
 
@@ -355,6 +368,7 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
         {
             myThumb.Background = Brushes.Orange;
         }
+
         void onDragCompleted(object sender, DragCompletedEventArgs e)
         {
             myThumb.Background = Brushes.Blue;
@@ -368,8 +382,29 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
                 e.Cancel = true;
                 return;
             }
+        }
 
+        private void ImportButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Image Files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|All files (*.*)|*.*";
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string filePath = openFileDialog.FileName;
+                BitmapImage bitmap = new BitmapImage(new Uri(filePath));
+
+                Image image = new Image
+                {
+                    Source = bitmap,
+                    Width = bitmap.Width,
+                    Height = bitmap.Height
+                };
+
+                Canvas.SetLeft(image, 0);
+                Canvas.SetTop(image, 0);
+                drawingPage.Children.Add(image);
+            }
         }
     }
 }
-
