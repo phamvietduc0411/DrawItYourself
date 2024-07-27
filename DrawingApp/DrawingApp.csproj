@@ -10,19 +10,40 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="assets\down-arrow.png" />
+    <None Remove="assets\Music\Baby Shark.mp3" />
+    <None Remove="assets\Music\PlayAh.mp3" />
+    <None Remove="assets\Music\PokiwarSoundTrack3.mp3" />
     <None Remove="assets\mutevolume.png" />
+    <None Remove="assets\next.png" />
     <None Remove="assets\pause.png" />
     <None Remove="assets\play.png" />
-    <None Remove="assets\stop.png" />
+    <None Remove="assets\previous.png" />
+    <None Remove="assets\up-arrow.png" />
     <None Remove="assets\volume-up.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="assets\down-arrow.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="assets\Logo.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="assets\Music\Baby Shark.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="assets\Music\PlayAh.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="assets\Music\PokiwarSoundTrack3.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="assets\mutevolume.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="assets\next.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="assets\pause.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -30,8 +51,11 @@
     <Content Include="assets\play.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="assets\stop.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    <Content Include="assets\previous.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="assets\up-arrow.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="assets\volume-up.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

@@ -12,6 +12,7 @@ using System;
 using System.Windows.Media;
 using System.Security.Policy;
 using System.Collections;
+using DrawingApp.models;
 
 namespace DrawingApp
 {
@@ -35,6 +36,9 @@ namespace DrawingApp
         private string lastSavedDirectory = null;
         private string lastSavedFilePath = null;
 
+        private List<Song> songs = new List<Song>();
+        private int currentPlaySongIndex = 0;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -48,14 +52,16 @@ namespace DrawingApp
             mediaPlayer.Volume = 0.5;
             sliderVolume.Value = 50;
 
+            mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
+
             DispatcherTimer timer = new DispatcherTimer();
             timer.Interval = TimeSpan.FromSeconds(1);
             timer.Tick += timer_Tick;
             timer.Start();
 
-            List<string> fileNames = ProcessDirectory(@"..\..\..\assets\Music");
+            songs = ProcessDirectory(@"..\..\..\assets\Music");
             SongsDataGrid.ItemsSource = null;
-            SongsDataGrid.ItemsSource = fileNames;
+            SongsDataGrid.ItemsSource = songs;
         }
 
         private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -310,11 +316,23 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
             if (mediaPlayer.Source != null)
             {
                 sliProgress.Minimum = 0;
-                sliProgress.Maximum = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                if (mediaPlayer.NaturalDuration.HasTimeSpan)
+                {
+                    sliProgress.Maximum = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                }
                 sliProgress.Value = mediaPlayer.Position.TotalSeconds;
                 CurrentMusicTimeLabel.Content = mediaPlayer.Position.ToString(@"mm\:ss");
-                EndMusicTimeLabel.Content = mediaPlayer.NaturalDuration.TimeSpan.ToString(@"mm\:ss");
+                if (mediaPlayer.NaturalDuration.HasTimeSpan)
+                {
+                    EndMusicTimeLabel.Content = mediaPlayer.NaturalDuration.TimeSpan.ToString(@"mm\:ss");
+                }
             }             
+        }
+        private void PlayMusicButtonImageToPause()
+        {
+            Image newImage = new Image();
+            newImage.Source = new BitmapImage(new Uri("./assets/pause.png", UriKind.Relative));
+            btnPlayMusic.Content = newImage;
         }
 
         private void btnPlayMusic_Click(object sender, RoutedEventArgs e)
@@ -333,10 +351,12 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
                 {
                     mediaPlayer.Play();
                     mediaPlayerIsPlaying = true;
-                    Image newImage = new Image();
-                    newImage.Source = new BitmapImage(new Uri("./assets/pause.png", UriKind.Relative));
-                    btnPlayMusic.Content = newImage;
+                    PlayMusicButtonImageToPause();
                 }
+            }
+            else
+            {
+                MusicExpander.IsExpanded = true;
             }
         }
 
@@ -401,18 +421,20 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
             MusicExpander.IsExpanded = !MusicExpander.IsExpanded;
         }
 
-        private List<string> ProcessDirectory(string targetDirectory)
+        private List<Song> ProcessDirectory(string targetDirectory)
         {
             System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, targetDirectory );
             string[] fileEntries = Directory.GetFiles(targetDirectory, "*.mp3");
-            List<string> fileNames = new List<string>();
+            List<Song> songs = new List<Song>();
 
+            int id = 1;
             foreach (string fileName in fileEntries)
             {
-                fileNames.Add(System.IO.Path.GetFileNameWithoutExtension(fileName));
+                Song song = new Song() { Id = id++, Name = System.IO.Path.GetFileNameWithoutExtension(fileName) };
+                songs.Add(song);
             }
 
-            return fileNames;
+            return songs;
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -452,19 +474,71 @@ Your file has been saved to: {filePath}", "Successfully", MessageBoxButton.OK, M
         {
             if (SongsDataGrid.SelectedItem != null)
             {
-                string? selectedFileName = SongsDataGrid.SelectedItem as string;
-                if(selectedFileName != null)
+                Song? selectedSong = SongsDataGrid.SelectedItem as Song;
+                if(selectedSong != null)
                 {
-                    string selectedMusicPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\assets\\Music", selectedFileName + ".mp3");
+                    string selectedMusicPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\assets\\Music", selectedSong.Name + ".mp3");
                     mediaPlayer.Open(new Uri(selectedMusicPath));
                     mediaPlayer.Play();
                     mediaPlayerIsPlaying = true;
                     Image newImage = new Image();
                     newImage.Source = new BitmapImage(new Uri("./assets/pause.png", UriKind.Relative));
                     btnPlayMusic.Content = newImage;
-                    CurrentPlayingSongLabel.Content = selectedFileName;
+                    CurrentPlayingSongLabel.Content = selectedSong.Name;
+                    currentPlaySongIndex = selectedSong.Id - 1; //index
+                    PlayMusicButtonImageToPause();
                 }
             }
+        }
+
+        private void ExpandMusicBarButton_Click(object sender, RoutedEventArgs e)
+        {
+            MusicBarExpender.IsExpanded = !MusicBarExpender.IsExpanded;
+            Image newImage = new Image();
+            if (MusicBarExpender.IsExpanded)
+            {      
+                newImage.Source = new BitmapImage(new Uri("./assets/down-arrow.png", UriKind.Relative));
+                ExpandMusicBarButton.Content = newImage;
+                ExpandMusicBarButton.Margin = new Thickness(ExpandMusicBarButton.Margin.Left, 0, ExpandMusicBarButton.Margin.Right, -8);
+            }
+            else {
+                newImage.Source = new BitmapImage(new Uri("./assets/up-arrow.png", UriKind.Relative));
+                ExpandMusicBarButton.Content = newImage;
+                ExpandMusicBarButton.Margin = new Thickness(ExpandMusicBarButton.Margin.Left, 70, ExpandMusicBarButton.Margin.Right, 10);
+            }              
+        }
+        private void MediaPlayer_MediaEnded(object sender, EventArgs e)
+        {
+            // Xử lý chuyển sang bài hát tiếp theo ở đây
+            // Ví dụ: Chuyển đến bài hát tiếp theo trong danh sách
+            currentPlaySongIndex++;
+            if (currentPlaySongIndex >= songs.Count) 
+                currentPlaySongIndex = 0;
+            PlaySongByIndex();
+        }
+
+        private void PreviousSongButton_Click(object sender, RoutedEventArgs e)
+        {
+            currentPlaySongIndex--;
+            if (currentPlaySongIndex < 0)
+                currentPlaySongIndex = songs.Count - 1;
+            PlaySongByIndex();
+        }
+        private void PlaySongByIndex()
+        {
+            string selectedMusicPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\assets\\Music", songs[currentPlaySongIndex].Name + ".mp3");
+            CurrentPlayingSongLabel.Content = songs[currentPlaySongIndex].Name;
+            mediaPlayer.Open(new Uri(selectedMusicPath));
+            mediaPlayer.Play();
+            PlayMusicButtonImageToPause();
+        }
+
+        private void NextSongButton_Click(object sender, RoutedEventArgs e)
+        {
+            currentPlaySongIndex++;
+            if (currentPlaySongIndex >= songs.Count)
+                currentPlaySongIndex = 0;
+            PlaySongByIndex();
         }
     }
 }
